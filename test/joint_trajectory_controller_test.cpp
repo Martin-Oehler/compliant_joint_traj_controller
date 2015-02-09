@@ -929,7 +929,7 @@ TEST_F(JointTrajectoryControllerTest, goalToleranceViolation)
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "joint_trajectory_controller_test");
+  ros::init(argc, argv, "compliant_joint_trajectory_controller_test");
 
   ros::AsyncSpinner spinner(1);
   spinner.start();

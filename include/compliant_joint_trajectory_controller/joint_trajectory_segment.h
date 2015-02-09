@@ -27,8 +27,8 @@
 
 /// \author Adolfo Rodriguez Tsouroukdissian
 
-#ifndef JOINT_TRAJECTORY_CONTROLLER_JOINT_TRAJECTORY_SEGMENT_H
-#define JOINT_TRAJECTORY_CONTROLLER_JOINT_TRAJECTORY_SEGMENT_H
+#ifndef compliant_joint_trajectory_controller_JOINT_TRAJECTORY_SEGMENT_H
+#define compliant_joint_trajectory_controller_JOINT_TRAJECTORY_SEGMENT_H
 
 // C++ standard
 #include <cmath>
@@ -47,10 +47,10 @@
 #include <realtime_tools/realtime_server_goal_handle.h>
 
 // Project
-#include <joint_trajectory_controller/joint_trajectory_msg_utils.h>
-#include <joint_trajectory_controller/tolerances.h>
+#include <compliant_joint_trajectory_controller/joint_trajectory_msg_utils.h>
+#include <compliant_joint_trajectory_controller/tolerances.h>
 
-namespace joint_trajectory_controller
+namespace compliant_joint_trajectory_controller
 {
 
 /**

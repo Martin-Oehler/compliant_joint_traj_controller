@@ -28,11 +28,11 @@
 
 /// \author Adolfo Rodriguez Tsouroukdissian, Stuart Glaser
 
-#ifndef JOINT_TRAJECTORY_CONTROLLER_JOINT_TRAJECTORY_CONTROLLER_IMP_H
-#define JOINT_TRAJECTORY_CONTROLLER_JOINT_TRAJECTORY_CONTROLLER_IMP_H
+#ifndef compliant_joint_trajectory_controller_compliant_joint_trajectory_controller_IMP_H
+#define compliant_joint_trajectory_controller_compliant_joint_trajectory_controller_IMP_H
 
 
-namespace joint_trajectory_controller
+namespace compliant_joint_trajectory_controller
 {
 
 namespace internal
@@ -237,8 +237,71 @@ template <class SegmentImpl, class HardwareInterface>
 JointTrajectoryController<SegmentImpl, HardwareInterface>::
 JointTrajectoryController()
   : verbose_(false), // Set to true during debugging
-    hold_trajectory_ptr_(new Trajectory)
+    hold_trajectory_ptr_(new Trajectory),
+    ft_interface_found_(false)
 {}
+
+template <class SegmentImpl, class HardwareInterface>
+std::string JointTrajectoryController<SegmentImpl, HardwareInterface>::
+getHardwareInterfaceType() const {
+    return hardware_interface::internal::demangledTypeName<HardwareInterface>() + ", ForceTorqueSensorInterface";
+}
+
+template <class SegmentImpl, class HardwareInterface>
+bool JointTrajectoryController<SegmentImpl, HardwareInterface>::
+initRequest(hardware_interface::RobotHW* robot_hw, ros::NodeHandle& root_nh, ros::NodeHandle &controller_nh,
+            std::set<std::string>& claimed_resources) {
+    // check if construction finished cleanly
+    if (state_ != CONSTRUCTED){
+        ROS_ERROR("Cannot initialize this controller because it failed to be constructed");
+        return false;
+    }
+
+    // get a pointer to the hardware interface
+    HardwareInterface* hw = robot_hw->get<HardwareInterface>();
+    if (!hw) {
+        ROS_ERROR_STREAM("This controller requires a hardware interface of type " << hardware_interface::internal::demangledTypeName<HardwareInterface>() << ".");
+        return false;
+    }
+    ROS_INFO_STREAM ("Loading controller with hardware interface: " << hardware_interface::internal::demangledTypeName<HardwareInterface>() << ".");
+
+
+    //We have access to the full hw interface here and thus can grab multiple components of it
+
+    // get pointer to force torque sensor interface
+    hardware_interface::ForceTorqueSensorInterface * force_torque_sensor_interface = robot_hw->get<hardware_interface::ForceTorqueSensorInterface >();
+    if (!force_torque_sensor_interface){
+        ROS_ERROR("Unable to retrieve ForceTorqueSensorInterface for compliant controller!");
+        ROS_ERROR("Compliant behaviour deactivated!");
+        ft_interface_found_ = false;
+    } else {
+        ft_interface_found_ = true;
+
+        // Get the name of the FT sensor to use from the parameter server
+        std::string ft_sensor_name = "ft_sensor";
+        controller_nh.getParam("ft_sensor_name", ft_sensor_name);
+        // Query the interface for the selected FT sensor
+        try {
+            force_torque_sensor_handle_ = force_torque_sensor_interface->getHandle(ft_sensor_name);
+        } catch (hardware_interface::HardwareInterfaceException e) {
+            ROS_ERROR_STREAM("Couldn't get handle for f/t sensor: " << ft_sensor_name << ". " << e.what());
+            return false;
+        }
+        ROS_INFO("Using force torque sensor: %s for compliant controller %s", ft_sensor_name.c_str(), internal::getLeafNamespace(controller_nh_).c_str());
+    }
+
+    // init controller
+    hw->clearClaims();
+    if (!init(hw, root_nh, controller_nh)) {
+        ROS_ERROR("Failed to initialize the controller");
+        return false;
+    }
+    claimed_resources = hw->getClaims();
+    hw->clearClaims();
+
+    state_ = INITIALIZED;
+    return true;
+}
 
 template <class SegmentImpl, class HardwareInterface>
 bool JointTrajectoryController<SegmentImpl, HardwareInterface>::init(HardwareInterface* hw,

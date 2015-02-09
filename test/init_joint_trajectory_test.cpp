@@ -34,9 +34,9 @@
 #include <gtest/gtest.h>
 #include <actionlib/server/action_server.h>
 #include <trajectory_interface/quintic_spline_segment.h>
-#include <joint_trajectory_controller/init_joint_trajectory.h>
+#include <compliant_joint_trajectory_controller/init_joint_trajectory.h>
 
-using namespace joint_trajectory_controller;
+using namespace compliant_joint_trajectory_controller;
 using namespace trajectory_msgs;
 using std::vector;
 using std::string;

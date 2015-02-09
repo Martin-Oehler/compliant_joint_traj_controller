@@ -32,9 +32,9 @@
 #include <gtest/gtest.h>
 #include <ros/console.h>
 #include <trajectory_interface/quintic_spline_segment.h>
-#include <joint_trajectory_controller/joint_trajectory_segment.h>
+#include <compliant_joint_trajectory_controller/joint_trajectory_segment.h>
 
-using namespace joint_trajectory_controller;
+using namespace compliant_joint_trajectory_controller;
 using namespace trajectory_msgs;
 
 // Floating-point value comparison threshold

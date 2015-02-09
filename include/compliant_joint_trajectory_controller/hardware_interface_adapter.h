@@ -27,8 +27,8 @@
 
 /// \author Adolfo Rodriguez Tsouroukdissian
 
-#ifndef JOINT_TRAJECTORY_CONTROLLER_HARDWARE_INTERFACE_ADAPTER_H
-#define JOINT_TRAJECTORY_CONTROLLER_HARDWARE_INTERFACE_ADAPTER_H
+#ifndef compliant_joint_trajectory_controller_HARDWARE_INTERFACE_ADAPTER_H
+#define compliant_joint_trajectory_controller_HARDWARE_INTERFACE_ADAPTER_H
 
 #include <cassert>
 #include <string>

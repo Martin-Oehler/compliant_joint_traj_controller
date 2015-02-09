@@ -27,8 +27,8 @@
 
 /// \author Adolfo Rodriguez Tsouroukdissian
 
-#ifndef JOINT_TRAJECTORY_CONTROLLER_JOINT_TRAJECTORY_MSG_UTILS_H
-#define JOINT_TRAJECTORY_CONTROLLER_JOINT_TRAJECTORY_MSG_UTILS_H
+#ifndef compliant_joint_trajectory_controller_JOINT_TRAJECTORY_MSG_UTILS_H
+#define compliant_joint_trajectory_controller_JOINT_TRAJECTORY_MSG_UTILS_H
 
 #include <algorithm>
 #include <iterator>
@@ -41,7 +41,7 @@
 
 #include <trajectory_interface/trajectory_interface.h>
 
-namespace joint_trajectory_controller
+namespace compliant_joint_trajectory_controller
 {
 namespace internal
 {

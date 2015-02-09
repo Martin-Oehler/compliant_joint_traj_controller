@@ -32,9 +32,9 @@
 #include <vector>
 
 #include <gtest/gtest.h>
-#include <joint_trajectory_controller/joint_trajectory_msg_utils.h>
+#include <compliant_joint_trajectory_controller/joint_trajectory_msg_utils.h>
 
-using namespace joint_trajectory_controller;
+using namespace compliant_joint_trajectory_controller;
 using namespace trajectory_msgs;
 using std::vector;
 using std::string;

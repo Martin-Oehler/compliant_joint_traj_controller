@@ -30,9 +30,9 @@
 #include <gtest/gtest.h>
 #include <ros/ros.h>
 #include <trajectory_interface/pos_vel_acc_state.h>
-#include <joint_trajectory_controller/tolerances.h>
+#include <compliant_joint_trajectory_controller/tolerances.h>
 
-using namespace joint_trajectory_controller;
+using namespace compliant_joint_trajectory_controller;
 typedef trajectory_interface::PosVelAccState<double> State;
 typedef StateTolerances<double> StateTols;
 

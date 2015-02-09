@@ -1,5 +1,5 @@
 <package>
-  <name>joint_trajectory_controller</name>
+  <name>compliant_joint_trajectory_controller</name>
   <description> Controller for executing joint-space trajectories on a group of joints. </description>
   <version>0.9.1</version>
 

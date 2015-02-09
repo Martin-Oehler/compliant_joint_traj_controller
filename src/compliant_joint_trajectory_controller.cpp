@@ -31,7 +31,7 @@
 
 // Project
 #include <trajectory_interface/quintic_spline_segment.h>
-#include <joint_trajectory_controller/joint_trajectory_controller.h>
+#include <compliant_joint_trajectory_controller/compliant_joint_trajectory_controller.h>
 
 namespace position_controllers
 {
@@ -39,9 +39,9 @@ namespace position_controllers
    * \brief Joint trajectory controller that represents trajectory segments as <b>quintic splines</b> and sends
    * commands to a \b position interface.
    */
-  typedef joint_trajectory_controller::JointTrajectoryController<trajectory_interface::QuinticSplineSegment<double>,
+  typedef compliant_joint_trajectory_controller::JointTrajectoryController<trajectory_interface::QuinticSplineSegment<double>,
                                                                  hardware_interface::PositionJointInterface>
-          JointTrajectoryController;
+          CompliantJointTrajectoryController;
 }
 
 namespace velocity_controllers
@@ -50,9 +50,9 @@ namespace velocity_controllers
    * \brief Joint trajectory controller that represents trajectory segments as <b>quintic splines</b> and sends
    * commands to a \b velocity interface.
    */
-  typedef joint_trajectory_controller::JointTrajectoryController<trajectory_interface::QuinticSplineSegment<double>,
+  typedef compliant_joint_trajectory_controller::JointTrajectoryController<trajectory_interface::QuinticSplineSegment<double>,
                                                                  hardware_interface::VelocityJointInterface>
-          JointTrajectoryController;
+          CompliantJointTrajectoryController;
 }
 
 namespace effort_controllers
@@ -61,11 +61,11 @@ namespace effort_controllers
    * \brief Joint trajectory controller that represents trajectory segments as <b>quintic splines</b> and sends
    * commands to an \b effort interface.
    */
-  typedef joint_trajectory_controller::JointTrajectoryController<trajectory_interface::QuinticSplineSegment<double>,
+  typedef compliant_joint_trajectory_controller::JointTrajectoryController<trajectory_interface::QuinticSplineSegment<double>,
                                                                  hardware_interface::EffortJointInterface>
-          JointTrajectoryController;
+          CompliantJointTrajectoryController;
 }
 
-PLUGINLIB_EXPORT_CLASS(position_controllers::JointTrajectoryController, controller_interface::ControllerBase)
-PLUGINLIB_EXPORT_CLASS(velocity_controllers::JointTrajectoryController, controller_interface::ControllerBase)
-PLUGINLIB_EXPORT_CLASS(effort_controllers::JointTrajectoryController,   controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(position_controllers::CompliantJointTrajectoryController, controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(velocity_controllers::CompliantJointTrajectoryController, controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(effort_controllers::CompliantJointTrajectoryController,   controller_interface::ControllerBase)

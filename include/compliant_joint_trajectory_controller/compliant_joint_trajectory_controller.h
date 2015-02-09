@@ -28,8 +28,8 @@
 
 /// \author Adolfo Rodriguez Tsouroukdissian, Stuart Glaser
 
-#ifndef JOINT_TRAJECTORY_CONTROLLER_JOINT_TRAJECTORY_CONTROLLER_H
-#define JOINT_TRAJECTORY_CONTROLLER_JOINT_TRAJECTORY_CONTROLLER_H
+#ifndef compliant_joint_trajectory_controller_compliant_joint_trajectory_controller_H
+#define compliant_joint_trajectory_controller_compliant_joint_trajectory_controller_H
 
 // C++ standard
 #include <cassert>
@@ -65,16 +65,17 @@
 #include <realtime_tools/realtime_server_goal_handle.h>
 #include <controller_interface/controller.h>
 #include <hardware_interface/joint_command_interface.h>
+#include <hardware_interface/force_torque_sensor_interface.h>
 #include <hardware_interface/internal/demangle_symbol.h>
 
 // Project
 #include <trajectory_interface/trajectory_interface.h>
 
-#include <joint_trajectory_controller/joint_trajectory_segment.h>
-#include <joint_trajectory_controller/init_joint_trajectory.h>
-#include <joint_trajectory_controller/hardware_interface_adapter.h>
+#include <compliant_joint_trajectory_controller/joint_trajectory_segment.h>
+#include <compliant_joint_trajectory_controller/init_joint_trajectory.h>
+#include <compliant_joint_trajectory_controller/hardware_interface_adapter.h>
 
-namespace joint_trajectory_controller
+namespace compliant_joint_trajectory_controller
 {
 
 /**
@@ -123,7 +124,7 @@ namespace joint_trajectory_controller
  * out-of-the-box.
  */
 template <class SegmentImpl, class HardwareInterface>
-class JointTrajectoryController : public controller_interface::Controller<HardwareInterface>
+class JointTrajectoryController : public controller_interface::ControllerBase
 {
 public:
 
@@ -144,6 +145,11 @@ public:
 
   void update(const ros::Time& time, const ros::Duration& period);
   /*\}*/
+
+  // These two functions have to be implemented as we derive from ControllerBase
+  std::string getHardwareInterfaceType() const;
+  bool initRequest(hardware_interface::RobotHW* hw, ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh,
+                           std::set<std::string>& claimed_resources);
 
 private:
 
@@ -268,10 +274,14 @@ private:
   void checkGoalTolerances(const typename Segment::State& state_error,
                            const Segment&                 segment);
 
+  // Compliant Behaviour
+  bool ft_interface_found_;
+  hardware_interface::ForceTorqueSensorHandle force_torque_sensor_handle_;
+
 };
 
 } // namespace
 
-#include <joint_trajectory_controller/joint_trajectory_controller_impl.h>
+#include <compliant_joint_trajectory_controller/compliant_joint_trajectory_controller_impl.h>
 
 #endif // header guard

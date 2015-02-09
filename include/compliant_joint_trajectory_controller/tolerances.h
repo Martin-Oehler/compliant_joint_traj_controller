@@ -27,8 +27,8 @@
 
 /// \author Adolfo Rodriguez Tsouroukdissian
 
-#ifndef JOINT_TRAJECTORY_CONTROLLER_TOLERANCES_H
-#define JOINT_TRAJECTORY_CONTROLLER_TOLERANCES_H
+#ifndef compliant_joint_trajectory_controller_TOLERANCES_H
+#define compliant_joint_trajectory_controller_TOLERANCES_H
 
 // C++ standard
 #include <cassert>
@@ -42,7 +42,7 @@
 // ROS messages
 #include <control_msgs/FollowJointTrajectoryAction.h>
 
-namespace joint_trajectory_controller
+namespace compliant_joint_trajectory_controller
 {
 
 /**
@@ -231,7 +231,7 @@ SegmentTolerances<Scalar> getSegmentTolerances(const ros::NodeHandle& nh,
                                                const std::vector<std::string>& joint_names)
 {
   const unsigned int n_joints = joint_names.size();
-  joint_trajectory_controller::SegmentTolerances<Scalar> tolerances;
+  compliant_joint_trajectory_controller::SegmentTolerances<Scalar> tolerances;
 
   // State and goal state tolerances
   double stopped_velocity_tolerance;
