@@ -15,8 +15,7 @@ find_package(catkin
     realtime_tools
     control_msgs
     trajectory_msgs
-    controller_manager
-    xacro
+    compliant_ros_controller
 )
 
 # Declare catkin package
@@ -32,8 +31,7 @@ catkin_package(
   realtime_tools
   control_msgs
   trajectory_msgs
-  controller_manager
-  xacro
+  compliant_ros_controller
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
 )

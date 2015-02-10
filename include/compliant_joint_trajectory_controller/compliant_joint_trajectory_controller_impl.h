@@ -28,8 +28,8 @@
 
 /// \author Adolfo Rodriguez Tsouroukdissian, Stuart Glaser
 
-#ifndef compliant_joint_trajectory_controller_compliant_joint_trajectory_controller_IMP_H
-#define compliant_joint_trajectory_controller_compliant_joint_trajectory_controller_IMP_H
+#ifndef COMPLIANT_JOINT_TRAJECTORY_CONTROLLER_COMPLIANT_JOINT_TRAJECTORY_CONTROLLER_IMP_H
+#define COMPLIANT_JOINT_TRAJECTORY_CONTROLLER_COMPLIANT_JOINT_TRAJECTORY_CONTROLLER_IMP_H
 
 
 namespace compliant_joint_trajectory_controller
@@ -130,7 +130,7 @@ std::string getLeafNamespace(const ros::NodeHandle& nh)
 } // namespace
 
 template <class SegmentImpl, class HardwareInterface>
-inline void JointTrajectoryController<SegmentImpl, HardwareInterface>::
+inline void CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 starting(const ros::Time& time)
 {
   // Update time data
@@ -145,19 +145,23 @@ starting(const ros::Time& time)
   // Initialize last state update time
   last_state_publish_time_ = time_data.uptime;
 
+  // Compliance
+  admittance_.starting();
+
   // Hardware interface adapter
   hw_iface_adapter_.starting(time_data.uptime);
 }
 
 template <class SegmentImpl, class HardwareInterface>
-inline void JointTrajectoryController<SegmentImpl, HardwareInterface>::
+inline void CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 stopping(const ros::Time& time)
 {
+  admittance_.stopping();
   preemptActiveGoal();
 }
 
 template <class SegmentImpl, class HardwareInterface>
-inline void JointTrajectoryController<SegmentImpl, HardwareInterface>::
+inline void CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 trajectoryCommandCB(const JointTrajectoryConstPtr& msg)
 {
   const bool update_ok = updateTrajectoryCommand(msg, RealtimeGoalHandlePtr());
@@ -165,7 +169,7 @@ trajectoryCommandCB(const JointTrajectoryConstPtr& msg)
 }
 
 template <class SegmentImpl, class HardwareInterface>
-inline void JointTrajectoryController<SegmentImpl, HardwareInterface>::
+inline void CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 preemptActiveGoal()
 {
   RealtimeGoalHandlePtr current_active_goal(rt_active_goal_);
@@ -180,7 +184,7 @@ preemptActiveGoal()
 }
 
 template <class SegmentImpl, class HardwareInterface>
-inline void JointTrajectoryController<SegmentImpl, HardwareInterface>::
+inline void CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 checkPathTolerances(const typename Segment::State& state_error,
                     const Segment&                 segment)
 {
@@ -196,7 +200,7 @@ checkPathTolerances(const typename Segment::State& state_error,
 }
 
 template <class SegmentImpl, class HardwareInterface>
-inline void JointTrajectoryController<SegmentImpl, HardwareInterface>::
+inline void CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 checkGoalTolerances(const typename Segment::State& state_error,
                     const Segment&                 segment)
 {
@@ -234,21 +238,22 @@ checkGoalTolerances(const typename Segment::State& state_error,
 }
 
 template <class SegmentImpl, class HardwareInterface>
-JointTrajectoryController<SegmentImpl, HardwareInterface>::
-JointTrajectoryController()
+CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
+CompliantJointTrajectoryController()
   : verbose_(false), // Set to true during debugging
     hold_trajectory_ptr_(new Trajectory),
-    ft_interface_found_(false)
+    ft_interface_found_(false),
+    param_manager_(admittance_)
 {}
 
 template <class SegmentImpl, class HardwareInterface>
-std::string JointTrajectoryController<SegmentImpl, HardwareInterface>::
+std::string CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 getHardwareInterfaceType() const {
     return hardware_interface::internal::demangledTypeName<HardwareInterface>() + ", ForceTorqueSensorInterface";
 }
 
 template <class SegmentImpl, class HardwareInterface>
-bool JointTrajectoryController<SegmentImpl, HardwareInterface>::
+bool CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 initRequest(hardware_interface::RobotHW* robot_hw, ros::NodeHandle& root_nh, ros::NodeHandle &controller_nh,
             std::set<std::string>& claimed_resources) {
     // check if construction finished cleanly
@@ -304,7 +309,7 @@ initRequest(hardware_interface::RobotHW* robot_hw, ros::NodeHandle& root_nh, ros
 }
 
 template <class SegmentImpl, class HardwareInterface>
-bool JointTrajectoryController<SegmentImpl, HardwareInterface>::init(HardwareInterface* hw,
+bool CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::init(HardwareInterface* hw,
                                                                      ros::NodeHandle&   root_nh,
                                                                      ros::NodeHandle&   controller_nh)
 {
@@ -389,21 +394,21 @@ bool JointTrajectoryController<SegmentImpl, HardwareInterface>::init(HardwareInt
   hw_iface_adapter_.init(joints_, controller_nh_);
 
   // ROS API: Subscribed topics
-  trajectory_command_sub_ = controller_nh_.subscribe("command", 1, &JointTrajectoryController::trajectoryCommandCB, this);
+  trajectory_command_sub_ = controller_nh_.subscribe("command", 1, &CompliantJointTrajectoryController::trajectoryCommandCB, this);
 
   // ROS API: Published topics
   state_publisher_.reset(new StatePublisher(controller_nh_, "state", 1));
 
   // ROS API: Action interface
   action_server_.reset(new ActionServer(controller_nh_, "follow_joint_trajectory",
-                                        boost::bind(&JointTrajectoryController::goalCB,   this, _1),
-                                        boost::bind(&JointTrajectoryController::cancelCB, this, _1),
+                                        boost::bind(&CompliantJointTrajectoryController::goalCB,   this, _1),
+                                        boost::bind(&CompliantJointTrajectoryController::cancelCB, this, _1),
                                         false));
   action_server_->start();
 
   // ROS API: Provided services
   query_state_service_ = controller_nh_.advertiseService("query_state",
-                                                         &JointTrajectoryController::queryStateService,
+                                                         &CompliantJointTrajectoryController::queryStateService,
                                                          this);
 
   // Preeallocate resources
@@ -429,11 +434,22 @@ bool JointTrajectoryController<SegmentImpl, HardwareInterface>::init(HardwareInt
     state_publisher_->unlock();
   }
 
+  // Init compliance classes
+  admittance_.init(1.0, 1.0, 1.0); // Init with arbitrary values, since they are overridden by dynamic reconfigure anyway
+  param_manager_.init(controller_nh_);
+
+  std::string moveit_group;
+  if (!controller_nh_.getParam("moveit_group", moveit_group)) {
+    ROS_ERROR_STREAM("Couldn't find param 'moveit_group' in namespace " << controller_nh.getNamespace() << ".");
+    return false;
+  }
+  inv_kin_.init(moveit_group);
+
   return true;
 }
 
 template <class SegmentImpl, class HardwareInterface>
-void JointTrajectoryController<SegmentImpl, HardwareInterface>::
+void CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 update(const ros::Time& time, const ros::Duration& period)
 {
   // Get currently followed trajectory
@@ -466,16 +482,12 @@ update(const ros::Time& time, const ros::Duration& period)
     return;
   }
 
-  // Update current state and state error
+  // Update current state
   for (unsigned int i = 0; i < joints_.size(); ++i)
   {
     current_state_.position[i] = joints_[i].getPosition();
     current_state_.velocity[i] = joints_[i].getVelocity();
     // There's no acceleration data available in a joint handle
-
-    state_error_.position[i] = desired_state_.position[i] - current_state_.position[i];
-    state_error_.velocity[i] = desired_state_.velocity[i] - current_state_.velocity[i];
-    state_error_.acceleration[i] = 0.0;
   }
 
   // Check tolerances if segment corresponds to currently active action goal
@@ -500,6 +512,39 @@ update(const ros::Time& time, const ros::Duration& period)
     }
   }
 
+  // Modify command to be compliant
+  // Calculate set-point in task space
+  compliant_controller::Vector6d x0, xd, xdotd;
+  inv_kin_.updateJointState(desired_state_.position);
+  Eigen::Affine3d tip_transform;
+  inv_kin_.getTipTransform(tip_transform);
+  KDL::Rotation rotation;
+  compliant_controller::ConversionHelper::eigenToKdl(tip_transform.rotation(), rotation);
+  double roll, pitch, yaw;
+  rotation.GetRPY(roll, pitch, yaw);
+  for (unsigned int i = 0; i < 3; i++) {
+    x0(i) = tip_transform.translation()(i);
+  }
+  x0(3) = roll;
+  x0(4) = pitch;
+  x0(5) = yaw;
+
+  // Calculate new set-point using admittance law
+  admittance_.update(time, x0, readFTSensor(), xd, xdotd, period.toSec());
+  inv_kin_.updateJointState(current_state_.position);
+  if (!inv_kin_.calcInvKin(time, xd, desired_state_.position)) {
+      admittance_.setLastSetPointFailed();
+  }
+
+  // Update state error
+  for (unsigned int i = 0; i < joints_.size(); i++) {
+      desired_state_.velocity[i] = 0;
+      desired_state_.acceleration[i] = 0;
+      state_error_.position[i] = desired_state_.position[i] - current_state_.position[i];
+      state_error_.velocity[i] = desired_state_.velocity[i] - current_state_.velocity[i];
+      state_error_.acceleration[i] = 0.0;
+  }
+
   // Hardware interface adapter: Generate and send commands
   hw_iface_adapter_.updateCommand(time_data.uptime, time_data.period,
                                   desired_state_, state_error_);
@@ -509,7 +554,30 @@ update(const ros::Time& time, const ros::Duration& period)
 }
 
 template <class SegmentImpl, class HardwareInterface>
-bool JointTrajectoryController<SegmentImpl, HardwareInterface>::
+compliant_controller::Vector6d CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
+readFTSensor() {
+    if (ft_interface_found_) {
+        const double* force = force_torque_sensor_handle_.getForce();
+        const double* torque = force_torque_sensor_handle_.getTorque();
+        compliant_controller::Vector6d force_torque;
+        for (unsigned int i = 0; i < 3; i++) {
+            force_torque(i) = *(force+i);
+            force_torque(i+3) = *(torque+i);
+        }
+        inv_kin_.updateJointState(current_state_.position);
+        Eigen::Affine3d tip_transform;
+        inv_kin_.getTipTransform(tip_transform);
+        compliant_controller::Matrix3d rot_base_tip = tip_transform.rotation();
+        force_torque.block<3,1>(0,0) = rot_base_tip * force_torque.block<3,1>(0,0).eval();
+        force_torque.block<3,1>(3,0) = rot_base_tip * force_torque.block<3,1>(3,0).eval();
+        return force_torque;
+    } else {
+        return compliant_controller::Vector6d::Zero();
+    }
+}
+
+template <class SegmentImpl, class HardwareInterface>
+bool CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 updateTrajectoryCommand(const JointTrajectoryConstPtr& msg, RealtimeGoalHandlePtr gh)
 {
   typedef InitJointTrajectoryOptions<Trajectory> Options;
@@ -586,7 +654,7 @@ updateTrajectoryCommand(const JointTrajectoryConstPtr& msg, RealtimeGoalHandlePt
 }
 
 template <class SegmentImpl, class HardwareInterface>
-void JointTrajectoryController<SegmentImpl, HardwareInterface>::
+void CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 goalCB(GoalHandle gh)
 {
   ROS_DEBUG_STREAM_NAMED(name_,"Recieved new action goal");
@@ -642,7 +710,7 @@ goalCB(GoalHandle gh)
 }
 
 template <class SegmentImpl, class HardwareInterface>
-void JointTrajectoryController<SegmentImpl, HardwareInterface>::
+void CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 cancelCB(GoalHandle gh)
 {
   RealtimeGoalHandlePtr current_active_goal(rt_active_goal_);
@@ -666,7 +734,7 @@ cancelCB(GoalHandle gh)
 }
 
 template <class SegmentImpl, class HardwareInterface>
-bool JointTrajectoryController<SegmentImpl, HardwareInterface>::
+bool CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 queryStateService(control_msgs::QueryTrajectoryState::Request&  req,
                   control_msgs::QueryTrajectoryState::Response& resp)
 {
@@ -705,7 +773,7 @@ queryStateService(control_msgs::QueryTrajectoryState::Request&  req,
 }
 
 template <class SegmentImpl, class HardwareInterface>
-void JointTrajectoryController<SegmentImpl, HardwareInterface>::
+void CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 publishState(const ros::Time& time)
 {
   // Check if it's time to publish
@@ -730,7 +798,7 @@ publishState(const ros::Time& time)
 }
 
 template <class SegmentImpl, class HardwareInterface>
-void JointTrajectoryController<SegmentImpl, HardwareInterface>::
+void CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 setHoldPosition(const ros::Time& time)
 {
   // Settle position in a fixed time. We do the following:

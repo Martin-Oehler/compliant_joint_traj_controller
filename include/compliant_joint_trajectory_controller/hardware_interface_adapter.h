@@ -43,13 +43,13 @@
 #include <hardware_interface/joint_command_interface.h>
 
 /**
- * \brief Helper class to simplify integrating the JointTrajectoryController with different hardware interfaces.
+ * \brief Helper class to simplify integrating the CompliantJointTrajectoryController with different hardware interfaces.
  *
- * The JointTrajectoryController outputs position, velocity and acceleration command triplets, while the more common hardware
+ * The CompliantJointTrajectoryController outputs position, velocity and acceleration command triplets, while the more common hardware
  * interfaces accept position, velocity or effort commands.
  *
  * Use one of the available template specializations of this class (or create your own) to adapt the
- * JointTrajectoryController to a specidfic hardware interface.
+ * CompliantJointTrajectoryController to a specidfic hardware interface.
  */
 template <class HardwareInterface, class State>
 class HardwareInterfaceAdapter
@@ -75,7 +75,7 @@ public:
  * The following is an example configuration of a controller that uses this adapter.
  * \code
  * head_controller:
- *   type: "position_controllers/JointTrajectoryController"
+ *   type: "position_controllers/CompliantJointTrajectoryController"
  *   joints:
  *     - head_1_joint
  *     - head_2_joint
@@ -127,7 +127,7 @@ private:
  * The following is an example configuration of a controller that uses this adapter. Notice the \p gains entry:
  * \code
  * head_controller:
- *   type: "velocity_controllers/JointTrajectoryController"
+ *   type: "velocity_controllers/CompliantJointTrajectoryController"
  *   joints:
  *     - head_1_joint
  *     - head_2_joint
@@ -222,7 +222,7 @@ private:
  * The following is an example configuration of a controller that uses this adapter. Notice the \p gains entry:
  * \code
  * head_controller:
- *   type: "effort_controllers/JointTrajectoryController"
+ *   type: "effort_controllers/CompliantJointTrajectoryController"
  *   joints:
  *     - head_1_joint
  *     - head_2_joint

@@ -28,8 +28,8 @@
 
 /// \author Adolfo Rodriguez Tsouroukdissian, Stuart Glaser
 
-#ifndef compliant_joint_trajectory_controller_compliant_joint_trajectory_controller_H
-#define compliant_joint_trajectory_controller_compliant_joint_trajectory_controller_H
+#ifndef COMPLIANT_JOINT_TRAJECTORY_CONTROLLER_COMPLIANT_JOINT_TRAJECTORY_CONTROLLER_H
+#define COMPLIANT_JOINT_TRAJECTORY_CONTROLLER_COMPLIANT_JOINT_TRAJECTORY_CONTROLLER_H
 
 // C++ standard
 #include <cassert>
@@ -74,6 +74,15 @@
 #include <compliant_joint_trajectory_controller/joint_trajectory_segment.h>
 #include <compliant_joint_trajectory_controller/init_joint_trajectory.h>
 #include <compliant_joint_trajectory_controller/hardware_interface_adapter.h>
+
+// Compliance
+#include <compliant_ros_controller/AdmittanceController.h>
+#include <compliant_ros_controller/AdmittanceParamManager.h>
+#include <compliant_ros_controller/CustomTypes.h>
+#include <compliant_ros_controller/InvKinController.h>
+#include <compliant_ros_controller/ConversionHelper.h>
+
+#include <kdl/frames.hpp>
 
 namespace compliant_joint_trajectory_controller
 {
@@ -124,11 +133,11 @@ namespace compliant_joint_trajectory_controller
  * out-of-the-box.
  */
 template <class SegmentImpl, class HardwareInterface>
-class JointTrajectoryController : public controller_interface::ControllerBase
+class CompliantJointTrajectoryController : public controller_interface::ControllerBase
 {
 public:
 
-  JointTrajectoryController();
+  CompliantJointTrajectoryController();
 
   /** \name Non Real-Time Safe Functions
    *\{*/
@@ -275,6 +284,11 @@ private:
                            const Segment&                 segment);
 
   // Compliant Behaviour
+  compliant_controller::Vector6d readFTSensor();
+
+  compliant_controller::AdmittanceController admittance_;
+  compliant_controller::AdmittanceParamManager param_manager_;
+  compliant_controller::InvKinController inv_kin_;
   bool ft_interface_found_;
   hardware_interface::ForceTorqueSensorHandle force_torque_sensor_handle_;
 
