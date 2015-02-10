@@ -19,7 +19,7 @@
   </class>
 
   <class name="effort_controllers/CompliantJointTrajectoryController"
-         type="effort_controllers::CompliantsJointTrajectoryController"
+         type="effort_controllers::CompliantJointTrajectoryController"
          base_class_type="controller_interface::ControllerBase">
     <description>
       The JointTrajectoryController executes joint-space trajectories on a set of joints.

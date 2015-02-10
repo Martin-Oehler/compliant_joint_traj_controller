@@ -657,7 +657,7 @@ template <class SegmentImpl, class HardwareInterface>
 void CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 goalCB(GoalHandle gh)
 {
-  ROS_DEBUG_STREAM_NAMED(name_,"Recieved new action goal");
+  ROS_DEBUG_STREAM_NAMED(name_,"Received new action goal");
 
   // Precondition: Running controller
   if (!this->isRunning())
