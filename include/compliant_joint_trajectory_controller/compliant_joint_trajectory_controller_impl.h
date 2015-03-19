@@ -242,8 +242,7 @@ CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 CompliantJointTrajectoryController()
   : verbose_(false), // Set to true during debugging
     hold_trajectory_ptr_(new Trajectory),
-    ft_interface_found_(false),
-    param_manager_(admittance_)
+    ft_interface_found_(false)
 {}
 
 template <class SegmentImpl, class HardwareInterface>
@@ -435,8 +434,7 @@ bool CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::init(Ha
   }
 
   // Init compliance classes
-  admittance_.init(1.0, 1.0, 1.0); // Init with arbitrary values, since they are overridden by dynamic reconfigure anyway
-  param_manager_.init(controller_nh_);
+  admittance_.init(joint_names_[0], joint_names_[joint_names_.size()-1], 1, 10, 5); // Init with arbitrary values, since they are overridden by dynamic reconfigure anyway
 
   std::string moveit_group;
   if (!controller_nh_.getParam("moveit_group", moveit_group)) {
@@ -512,29 +510,9 @@ update(const ros::Time& time, const ros::Duration& period)
     }
   }
 
-  // Modify command to be compliant
-  // Calculate set-point in task space
-  compliant_controller::Vector6d x0, xd, xdotd;
-  inv_kin_.updateJointState(desired_state_.position);
-  Eigen::Affine3d tip_transform;
-  inv_kin_.getTipTransform(tip_transform);
-  KDL::Rotation rotation;
-  compliant_controller::ConversionHelper::eigenToKdl(tip_transform.rotation(), rotation);
-  double roll, pitch, yaw;
-  rotation.GetRPY(roll, pitch, yaw);
-  for (unsigned int i = 0; i < 3; i++) {
-    x0(i) = tip_transform.translation()(i);
-  }
-  x0(3) = roll;
-  x0(4) = pitch;
-  x0(5) = yaw;
-
   // Calculate new set-point using admittance law
-  admittance_.update(time, x0, readFTSensor(), xd, xdotd, period.toSec());
-  inv_kin_.updateJointState(current_state_.position);
-  if (!inv_kin_.calcInvKin(time, xd, desired_state_.position)) {
-      admittance_.setLastSetPointFailed();
-  }
+  admittance_.updateJointState(current_state_.position);
+  admittance_.update(desired_state_.position, readFTSensor(), desired_state_.position, period.toSec());
 
   // Update state error
   for (unsigned int i = 0; i < joints_.size(); i++) {

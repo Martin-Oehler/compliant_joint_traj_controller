@@ -76,8 +76,7 @@
 #include <compliant_joint_trajectory_controller/hardware_interface_adapter.h>
 
 // Compliance
-#include <compliant_ros_controller/AdmittanceController.h>
-#include <compliant_ros_controller/AdmittanceParamManager.h>
+#include <compliant_ros_controller/JointAdmittanceController.h>
 #include <compliant_ros_controller/CustomTypes.h>
 #include <compliant_ros_controller/InvKinController.h>
 #include <compliant_ros_controller/ConversionHelper.h>
@@ -286,8 +285,7 @@ private:
   // Compliant Behaviour
   compliant_controller::Vector6d readFTSensor();
 
-  compliant_controller::AdmittanceController admittance_;
-  compliant_controller::AdmittanceParamManager param_manager_;
+  compliant_controller::JointAdmittanceController admittance_;
   compliant_controller::InvKinController inv_kin_;
   bool ft_interface_found_;
   hardware_interface::ForceTorqueSensorHandle force_torque_sensor_handle_;
