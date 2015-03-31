@@ -269,14 +269,11 @@ initRequest(hardware_interface::RobotHW* robot_hw, ros::NodeHandle& root_nh, ros
     }
     ROS_INFO_STREAM ("Loading controller with hardware interface: " << hardware_interface::internal::demangledTypeName<HardwareInterface>() << ".");
 
-
-    //We have access to the full hw interface here and thus can grab multiple components of it
-
     // get pointer to force torque sensor interface
     hardware_interface::ForceTorqueSensorInterface * force_torque_sensor_interface = robot_hw->get<hardware_interface::ForceTorqueSensorInterface >();
     if (!force_torque_sensor_interface){
-        ROS_ERROR("Unable to retrieve ForceTorqueSensorInterface for compliant controller!");
-        ROS_ERROR("Compliant behaviour deactivated!");
+        ROS_WARN("Unable to retrieve ForceTorqueSensorInterface for compliant controller!");
+        ROS_WARN("Compliant behaviour deactivated!");
         ft_interface_found_ = false;
     } else {
         ft_interface_found_ = true;
@@ -434,7 +431,16 @@ bool CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::init(Ha
   }
 
   // Init compliance classes
-  admittance_.init(joint_names_[0], joint_names_[joint_names_.size()-1], 1, 10, 5); // Init with arbitrary values, since they are overridden by dynamic reconfigure anyway
+  std::string root_frame, tip_frame;
+  if (!controller_nh_.getParam("root", root_frame)) {
+    ROS_ERROR_STREAM("Couldn't find param 'root' in namespace " << controller_nh.getNamespace() << ".");
+  }
+  if (!controller_nh_.getParam("tip", tip_frame)) {
+    ROS_ERROR_STREAM("Couldn't find param 'tip' in namespace " << controller_nh.getNamespace() << ".");
+  }
+  if (!admittance_.init(root_frame, tip_frame, 1, 250, 400)) {
+      return false;
+  }
 
   std::string moveit_group;
   if (!controller_nh_.getParam("moveit_group", moveit_group)) {
@@ -512,11 +518,10 @@ update(const ros::Time& time, const ros::Duration& period)
 
   // Calculate new set-point using admittance law
   admittance_.updateJointState(current_state_.position);
-  admittance_.update(desired_state_.position, readFTSensor(), desired_state_.position, period.toSec());
+  admittance_.update(desired_state_.position, readFTSensor(), desired_state_.position, desired_state_.velocity, period.toSec());
 
   // Update state error
   for (unsigned int i = 0; i < joints_.size(); i++) {
-      desired_state_.velocity[i] = 0;
       desired_state_.acceleration[i] = 0;
       state_error_.position[i] = desired_state_.position[i] - current_state_.position[i];
       state_error_.velocity[i] = desired_state_.velocity[i] - current_state_.velocity[i];
