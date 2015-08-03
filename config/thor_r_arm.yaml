@@ -1,0 +1,38 @@
+# Compliant Manipulation ---------------------------------
+right_arm_compl_traj_controller:
+    type: "position_controllers/CompliantJointTrajectoryController"
+    ft_sensor_name: r_arm
+    joints:
+      - r_shoulder_pitch
+      - r_shoulder_roll
+      - r_shoulder_yaw
+      - r_elbow
+      - r_wrist_yaw1
+      - r_wrist_roll
+      - r_wrist_yaw2
+      
+    constraints:
+      goal_time: *goal_time_constraint
+      stopped_velocity_tolerance: 1.0
+      r_shoulder_pitch:
+        goal: *goal_pos_constraint
+        trajectory: *trajectory_pos_constraint
+      r_shoulder_roll:
+        goal: *goal_pos_constraint
+        trajectory: *trajectory_pos_constraint
+      r_shoulder_yaw:
+        goal: *goal_pos_constraint
+        trajectory: *trajectory_pos_constraint
+      r_elbow:
+        goal: *goal_pos_constraint
+        trajectory: *trajectory_pos_constraint        
+      r_wrist_yaw1:
+        goal: *goal_pos_constraint
+        trajectory: *trajectory_pos_constraint
+      r_wrist_roll:
+        goal: *goal_pos_constraint
+        trajectory: *trajectory_pos_constraint
+      r_wrist_yaw2:
+        goal: *goal_pos_constraint
+        trajectory: *trajectory_pos_constraint
+    moveit_group: "r_arm_group"
