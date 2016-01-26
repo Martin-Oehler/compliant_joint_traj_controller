@@ -255,7 +255,7 @@ getHardwareInterfaceType() const {
 template <class SegmentImpl, class HardwareInterface>
 bool CompliantJointTrajectoryController<SegmentImpl, HardwareInterface>::
 initRequest(hardware_interface::RobotHW* robot_hw, ros::NodeHandle& root_nh, ros::NodeHandle &controller_nh,
-            std::set<std::string>& claimed_resources) {
+            ClaimedResources& claimed_resources) {
     // check if construction finished cleanly
     if (state_ != CONSTRUCTED){
         ROS_ERROR("Cannot initialize this controller because it failed to be constructed");
@@ -301,7 +301,8 @@ initRequest(hardware_interface::RobotHW* robot_hw, ros::NodeHandle& root_nh, ros
         ROS_ERROR("Failed to initialize the controller");
         return false;
     }
-    claimed_resources = hw->getClaims();
+    hardware_interface::InterfaceResources iface_res(getHardwareInterfaceType(), hw->getClaims());
+    claimed_resources.assign(1, iface_res);
     hw->clearClaims();
 
     state_ = INITIALIZED;
